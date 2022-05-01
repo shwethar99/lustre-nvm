@@ -66,6 +66,10 @@
 #include <lustre_crypto.h>
 
 #include "mdt_internal.h"
+#include "level_hashing.h"
+
+#define LEVEL_SIZE "14"
+#define NUMBER_INSERTIONS "2000000"
 
 static unsigned int max_mod_rpcs_per_client = 8;
 module_param(max_mod_rpcs_per_client, uint, 0644);
@@ -180,6 +184,11 @@ void mdt_lock_pdo_init(struct mdt_lock_handle *lh, enum ldlm_mode lock_mode,
 	lh->mlh_type = MDT_PDO_LOCK;
 
 	if (lu_name_is_valid(lname)) {
+		int level_size = atoi(LEVEL_SIZE);                  
+    		int insert_num = atoi(NUMBER_INSERTIONS);
+		level_hash *level = level_init(level_size);
+		int hash_success= level_insert(level,uint8_t*(lname->ln_name), uint8_t*(lname->ln_namelen));
+
 		lh->mlh_pdo_hash = ll_full_name_hash(NULL, lname->ln_name,
 						     lname->ln_namelen);
 		/* XXX Workaround for LU-2856
@@ -189,8 +198,10 @@ void mdt_lock_pdo_init(struct mdt_lock_handle *lh, enum ldlm_mode lock_mode,
 		 * hash value. We therefore map zero onto an
 		 * arbitrary, but consistent value (1) to avoid
 		 * problems further down the road. */
-		if (unlikely(lh->mlh_pdo_hash == 0))
+		level_destroy(level);
+		if (unlikely(lh->mlh_pdo_hash == 0)){
 			lh->mlh_pdo_hash = 1;
+		}
 	} else {
 		lh->mlh_pdo_hash = 0;
 	}
