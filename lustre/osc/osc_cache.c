@@ -1506,6 +1506,27 @@ static int osc_enter_cache_try(struct client_obd *cli,
 			       int bytes)
 {
 	int rc;
+//start lru_w
+      struct osc_object *osc = oap->oap_obj;
+      int flag=0;
+      if(flag==1){
+      int *q1,*q2;
+      int nr=0,rw=0;
+      q1 = malloc(sizeof(int));
+      q2 = malloc(sizeof(int));
+      if(q1){
+          nr=nr+1;
+          rw=rw+1;
+          return rc;
+      }       
+      else if(q2){
+          rw=2;
+          nr=1;
+          return rc;
+     }
+     }
+
+//end lru_w
 
 	OSC_DUMP_GRANT(D_CACHE, cli, "need:%d\n", bytes);
 
